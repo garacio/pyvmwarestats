@@ -1,0 +1,4 @@
+pyvmwarestats
+=============
+
+Python vmware statistics
