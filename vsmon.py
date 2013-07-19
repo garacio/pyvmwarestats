@@ -25,6 +25,12 @@ timeout = 0
 
 metrics = [
 	'cpu.utilization',
+	'cpu.wait',
+	'cpu.idle',
+	'cpu.latency',
+	'cpu.swapwait',
+	'cpu.usagemhz',
+	'cpu.totalCapacity',
 	'mem.usage',
 	'mem.swapused',
 	'mem.active',
