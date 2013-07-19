@@ -69,7 +69,7 @@ class bcolors:
 # ----------------------------------------------------------------------
 
 def getopts() :
-  global hostname,user,password,verbose,summary,clean
+  global hostname,user,password,verbose,summary,clean,vc
   usage = "usage: %prog -H hostname -U username -P password [ -v ]\n\n" \
     "example: %prog -H my-shiny-new-vmware-server -U root -P fakepassword \n\n" \
     "or, verbosely:\n\n" \
@@ -90,6 +90,8 @@ def getopts() :
       help="print summary statistics for monitoring")
   group2.add_option("-c", "--clean", action="store_true", dest="clean", default=False, \
       help="Clean print")
+  group2.add_option("-C", "--vc", action="store_true", dest="vc", default=False, \
+      help="Host is Vcenter Server")
 
   parser.add_option_group(group1)
   parser.add_option_group(group2)
@@ -123,6 +125,7 @@ def getopts() :
     verbose=options.verbose
     summary=options.summary
     clean=options.clean
+    vc=options.vc
 
 
 # ----------------------------------------------------------------------
@@ -158,7 +161,10 @@ def get_metrics(host, name):
 	counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
 	for m in metrics:
 		ms = pm.get_entity_statistic(host, counters[m])[0]
-		coloroutput([m, ms.value, ms.unit])
+		if vc:
+			coloroutput([name, m, ms.value, ms.unit])
+		else:
+			coloroutput([m, ms.value, ms.unit])
 
 for host, name in s.get_hosts().items():
     if verbose:
