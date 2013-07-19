@@ -85,8 +85,8 @@ def getopts() :
   group1.add_option("-P", "--pass", dest="password", \
       help="password, if password matches file:<path>, first line of given file will be used as password", metavar="PASS")
 
-  group2.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, \
-      help="print status messages to stdout (default is to be quiet)")
+  # group2.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, \
+  #     help="print status messages to stdout (default is to be quiet)")
   group2.add_option("-s", "--summary", action="store_true", dest="summary", default=True, \
       help="print summary statistics for monitoring")
   group2.add_option("-c", "--clean", action="store_true", dest="clean", default=False, \
@@ -127,7 +127,7 @@ def getopts() :
 
     user=options.user
     password=options.password
-    verbose=options.verbose
+    # verbose=options.verbose
     summary=options.summary
     clean=options.clean
     vc=options.vc
