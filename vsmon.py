@@ -172,7 +172,7 @@ def get_all(host, name):
 
 def get_metrics(host, name):
     counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
-    if mr == None:
+    if mr == 'None':
         for m in metrics:
             ms = pm.get_entity_statistic(host, counters[m])[0]
             coloroutput(name, [m, ms.value, ms.unit])
