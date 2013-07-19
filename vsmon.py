@@ -149,7 +149,7 @@ getopts()
 
 def coloroutput(name, message) :
     if vc:
-        msg = name
+        msg = name + ' '
     else:
         msg = ''
     if not debug:
