@@ -46,6 +46,9 @@ metrics = [
     'net.usage',
     'power.power',
     'power.powerCap',
+    'hbr.hbrNumVms', # vSphere Replication VM Count
+    'hbr.hbrNetRx', # Replication Data Receive Rate
+    'hbr.hbrNetTx', #Replication Data Transmit Rate
     ]
 
 # ----------------------------------------------------------------------
@@ -70,7 +73,7 @@ class bcolors:
 # ----------------------------------------------------------------------
 
 def getopts() :
-  global hostname,user,password,verbose,summary,clean,vc,mr,debug
+  global hostname,user,password,verbose,summary,clean,vc,mr,debug,lk
   usage = "usage: %prog -H hostname -U username -P password [ -v ]\n\n" \
     "example: %prog -H my-shiny-new-vmware-server -U root -P fakepassword \n\n" \
     "or, verbosely:\n\n" \
@@ -85,8 +88,6 @@ def getopts() :
   group1.add_option("-P", "--pass", dest="password", \
       help="password, if password matches file:<path>, first line of given file will be used as password", metavar="PASS")
 
-  # group2.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, \
-  #     help="print status messages to stdout (default is to be quiet)")
   group2.add_option("-s", "--summary", action="store_true", dest="summary", default=True, \
       help="print summary statistics for monitoring")
   group2.add_option("-c", "--clean", action="store_true", dest="clean", default=False, \
@@ -97,6 +98,10 @@ def getopts() :
       help="Get single metric")
   group2.add_option("-d", "--debug", dest="debug", action="store_true", default=False, \
       help="Use debug mode")
+  group2.add_option("-l", "--list-keys", dest="lk", action="store_true", default=False, \
+      help="Print metrics list")
+  group2.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, \
+      help="Print metrics")
 
   parser.add_option_group(group1)
   parser.add_option_group(group2)
@@ -127,11 +132,12 @@ def getopts() :
 
     user=options.user
     password=options.password
-    # verbose=options.verbose
+    verbose=options.verbose
     summary=options.summary
     clean=options.clean
     vc=options.vc
     mr=options.mr
+    lk=options.lk
     debug=options.debug
 
 
@@ -164,11 +170,19 @@ s.connect(hostname, user, password)
 pm = s.get_performance_manager() 
 
 def get_all(host, name):
+    if verbose and lk:
+            print bcolors.RED + 'Use -v OR -l option ', bcolors.ENDC, '\n'
+            sys.exit(0)
     print bcolors.RED + '[+]' + bcolors.ENDC + ' host: ', name
     counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
     for c in counters:
-        print bcolors.YELLOW + '    [-] ', bcolors.ENDC, c, counters[c]
-        print bcolors.GREEN + '        [--] ', bcolors.ENDC, pm.get_entity_statistic(host, counters[c]), bcolors.ENDC
+        if lk and not verbose:
+            print bcolors.YELLOW + '    [-] ', bcolors.ENDC, c, counters[c]
+        elif verbose and not lk:
+            print bcolors.YELLOW + '    [-] ', bcolors.ENDC, c, counters[c]
+            st = pm.get_entity_statistic(host, counters[c])
+            for i in range(0, len(st)):
+                print bcolors.GREEN + '        [--] ', bcolors.ENDC, st[i], '\n'
 
 def get_metrics(host, name):
     counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
@@ -184,11 +198,11 @@ def get_metrics(host, name):
             coloroutput(name, ms)
 
 for host, name in s.get_hosts().items():
-    if verbose:
+    if lk or verbose:
         get_all(host, name)
     # else:
     #     get_property(host, name)
-    if summary:
+    if summary and not lk and not verbose:
         get_metrics(host, name)
 
 s.disconnect()
