@@ -29,7 +29,8 @@ metrics = [
 	'mem.swapused',
 	'mem.active',
 	'net.usage',
-	'power.power'
+	'power.power',
+	'power.powerCap',
 	]
 
 # ----------------------------------------------------------------------
