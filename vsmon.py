@@ -24,34 +24,35 @@ verbose=False
 timeout = 0
 
 metrics = [
-	'cpu.utilization',
-	'cpu.wait',
-	'cpu.idle',
-	'cpu.latency',
-	'cpu.swapwait',
-	'cpu.usagemhz',
-	'cpu.totalCapacity',
-	'mem.usage',
-	'mem.swapused',
-	'mem.active',
-	'disk.write',
-	'disk.read',
-	'disk.usage',
-	'disk.totalLatency',
-	'datastore.write',
-	'datastore.read',
-	'datastore.maxTotalLatency',
-	'datastore.totalReadLatency',
-	'datastore.totalWriteLatency',
-	'net.usage',
-	'power.power',
-	'power.powerCap',
-	]
+    'cpu.utilization',
+    'cpu.wait',
+    'cpu.idle',
+    'cpu.latency',
+    'cpu.swapwait',
+    'cpu.usagemhz',
+    'cpu.totalCapacity',
+    'mem.usage',
+    'mem.swapused',
+    'mem.active',
+    'disk.write',
+    'disk.read',
+    'disk.usage',
+    'disk.totalLatency',
+    'datastore.write',
+    'datastore.read',
+    'datastore.maxTotalLatency',
+    'datastore.totalReadLatency',
+    'datastore.totalWriteLatency',
+    'net.usage',
+    'power.power',
+    'power.powerCap',
+    ]
 
 # ----------------------------------------------------------------------
 
 class bcolors:
-    HEADER = '\033[95m'
+    GRAY = '\033[95m'
+    WHITE = '\033[37m'
     BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
@@ -69,7 +70,7 @@ class bcolors:
 # ----------------------------------------------------------------------
 
 def getopts() :
-  global hostname,user,password,verbose,summary,clean,vc
+  global hostname,user,password,verbose,summary,clean,vc,mr,debug
   usage = "usage: %prog -H hostname -U username -P password [ -v ]\n\n" \
     "example: %prog -H my-shiny-new-vmware-server -U root -P fakepassword \n\n" \
     "or, verbosely:\n\n" \
@@ -92,6 +93,10 @@ def getopts() :
       help="Clean print")
   group2.add_option("-C", "--vc", action="store_true", dest="vc", default=False, \
       help="Host is Vcenter Server")
+  group2.add_option("-m", "--metric", dest="mr", default='None', \
+      help="Get single metric")
+  group2.add_option("-d", "--debug", dest="debug", action="store_true", default=False, \
+      help="Use debug mode")
 
   parser.add_option_group(group1)
   parser.add_option_group(group2)
@@ -126,6 +131,8 @@ def getopts() :
     summary=options.summary
     clean=options.clean
     vc=options.vc
+    mr=options.mr
+    debug=options.debug
 
 
 # ----------------------------------------------------------------------
@@ -134,14 +141,20 @@ getopts()
 
 # ----------------------------------------------------------------------
 
-def coloroutput(message) :
-    msg = ''
-    for m in message:
-        msg += m + ' '
-    if clean:
-        print msg
+def coloroutput(name, message) :
+    if vc:
+        msg = name
     else:
-        print bcolors.BLUE + '[*]' + bcolors.ENDC, "%s %s" % (time.strftime("%Y%m%d %H:%M:%S"), msg)
+        msg = ''
+    if not debug:
+        for m in message:
+            msg += m + ' '
+        if clean:
+            print msg
+        else:
+            print bcolors.BLUE + '[*]' + bcolors.ENDC, "%s %s" % (time.strftime("%Y%m%d %H:%M:%S"), msg)
+    else:
+        print message
 
 # ----------------------------------------------------------------------
 
@@ -158,13 +171,17 @@ def get_all(host, name):
         print bcolors.GREEN + '        [--] ', bcolors.ENDC, pm.get_entity_statistic(host, counters[c]), bcolors.ENDC
 
 def get_metrics(host, name):
-	counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
-	for m in metrics:
-		ms = pm.get_entity_statistic(host, counters[m])[0]
-		if vc:
-			coloroutput([name, m, ms.value, ms.unit])
-		else:
-			coloroutput([m, ms.value, ms.unit])
+    counters = pm.get_entity_counters(VIMor(host, MORTypes.HostSystem))
+    if mr == None:
+        for m in metrics:
+            ms = pm.get_entity_statistic(host, counters[m])[0]
+            coloroutput(name, [m, ms.value, ms.unit])
+    else:
+        ms = pm.get_entity_statistic(host, counters[mr])[0]
+        if not debug:
+            coloroutput(name, [mr, ms.value, ms.unit])
+        else:
+            coloroutput(name, ms)
 
 for host, name in s.get_hosts().items():
     if verbose:
@@ -172,6 +189,6 @@ for host, name in s.get_hosts().items():
     # else:
     #     get_property(host, name)
     if summary:
-    	get_metrics(host, name)
+        get_metrics(host, name)
 
 s.disconnect()
