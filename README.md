@@ -9,4 +9,4 @@ pip install -r requirements.txt
 
 NOTE:
 To use Zabbix template host should have macros:
-{$IPADDR} => <real vmhost IP here>
+{$IPADDR} => real.vm.host.IP
