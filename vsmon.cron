@@ -1,0 +1,1 @@
+*/5 * * * * zabbix cd /usr/bin/env python /opt/vsmon.py -H vmware_addr -U login -P 'pass' -C -c > /tmp/vsmon/results.new; mv /tmp/vsmon/results.new /tmp/vsmon/results.txt

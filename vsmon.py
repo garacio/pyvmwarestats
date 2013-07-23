@@ -202,7 +202,7 @@ for host, name in s.get_hosts().items():
         get_all(host, name)
     # else:
     #     get_property(host, name)
-    if summary and not lk and not verbose:
+    elif summary and not lk and not verbose:
         get_metrics(host, name)
 
 s.disconnect()
